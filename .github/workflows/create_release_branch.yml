@@ -1,0 +1,36 @@
+name: Create Release Branch
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Important for accurate tag retrieval
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'GitHub Actions Bot'
+          git config --global user.email 'actions@github.com'
+
+      - name: Determine next release version
+        id: version
+        run: |
+          #Example of getting the latest tag, and incrementing it. This will need to be adjusted to your versioning system.
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          NEW_TAG=${LATEST_TAG%.*}.$((${LATEST_TAG##*. } + 1))
+          echo "::set-output name=new_tag::$NEW_TAG"
+
+      - name: Create release branch
+        run: |
+          git checkout -b "release/${{ steps.version.outputs.new_tag }}"
+
+      - name: Push release branch
+        run: |
+          git push origin "release/${{ steps.version.outputs.new_tag }}"

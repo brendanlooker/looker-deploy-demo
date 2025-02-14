@@ -25,46 +25,37 @@ jobs:
       - name: Fetch Tags
         run: git fetch --tags
 
-      - name: Determine next release version
+      - name: Determine Next Release Version
         id: version
         run: |
-          TAGS=$(git tag -l | sort -V | tail -n 1)
-          if [[ -z "$TAGS" ]]; then
+          LATEST_TAG=$(git tag -l | sort -V | tail -n 1)
+          if [[ -z "$LATEST_TAG" ]]; then
             NEW_TAG="1.0.0"
           else
-            VERSION_PARTS=(${TAGS//./ })
-            PATCH_VERSION=$(( ${VERSION_PARTS} + 1 ))
-            NEW_TAG="${VERSION_PARTS}.${VERSION_PARTS}.${PATCH_VERSION}"
+            IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_TAG"
+            PATCH_VERSION=$(( VERSION_PARTS[2] + 1 ))
+            NEW_TAG="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH_VERSION"
           fi
-          echo "::set-output name=new_tag::$NEW_TAG"
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Debug NEW_TAG
-        run: echo "NEW_TAG: ${{ steps.version.outputs.new_tag }}"
-
-      - name: Check if tag exists
+      - name: Check If Tag Exists
         id: tag_check
         run: |
-          if git tag -l ${{ steps.version.outputs.new_tag }}; then
-            echo "::set-output name=tag_exists::true"
+          if git rev-parse "refs/tags/${{ steps.version.outputs.new_tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::set-output name=tag_exists::false"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create Tag (if it doesn't exist)
-        if: steps.tag_check.outputs.tag_exists == 'false'
+      - name: Create and Push Tag (If Not Exists)
+        if: steps.tag_check.outputs.exists == 'false'
         run: |
           git tag -a ${{ steps.version.outputs.new_tag }} -m "Release ${{ steps.version.outputs.new_tag }}"
           git push origin ${{ steps.version.outputs.new_tag }}
 
-      - name: Debug Branch Name
-        run: echo "Branch Name: release/${{ steps.version.outputs.new_tag }}"
-
-      - name: Create release branch
+      - name: Create and Push Release Branch
         run: |
           git checkout -b "release/${{ steps.version.outputs.new_tag }}"
-
-      - name: Push release branch
-        run: |
           git push origin "release/${{ steps.version.outputs.new_tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

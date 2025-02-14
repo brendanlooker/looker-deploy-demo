@@ -28,12 +28,11 @@ jobs:
       - name: Determine next release version
         id: version
         run: |
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
-          if [[ -z "$LATEST_TAG" ]]; then
-            NEW_TAG="1.0.0" # Start with 1.0.0 if no tags
+          TAGS=$(git tag -l | sort -V | tail -n 1)
+          if [[ -z "$TAGS" ]]; then
+            NEW_TAG="1.0.0"
           else
-            # Increment the patch version
-            VERSION_PARTS=(${LATEST_TAG//./ })
+            VERSION_PARTS=(${TAGS//./ })
             PATCH_VERSION=$(( ${VERSION_PARTS} + 1 ))
             NEW_TAG="${VERSION_PARTS}.${VERSION_PARTS}.${PATCH_VERSION}"
           fi

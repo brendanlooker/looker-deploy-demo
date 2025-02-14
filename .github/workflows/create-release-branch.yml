@@ -22,14 +22,20 @@ jobs:
           git config --global user.name 'GitHub Actions Bot'
           git config --global user.email 'actions@github.com'
 
+      - name: Fetch Tags
+        run: git fetch --tags
+
       - name: Determine next release version
         id: version
         run: |
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
           if [[ -z "$LATEST_TAG" ]]; then
-            NEW_TAG="1.0.0"
+            NEW_TAG="1.0.0" # Start with 1.0.0 if no tags
           else
-            NEW_TAG=${LATEST_TAG%.*}.$((${LATEST_TAG##*. } + 1))
+            # Increment the patch version
+            VERSION_PARTS=(${LATEST_TAG//./ })
+            PATCH_VERSION=$(( ${VERSION_PARTS} + 1 ))
+            NEW_TAG="${VERSION_PARTS}.${VERSION_PARTS}.${PATCH_VERSION}"
           fi
           echo "::set-output name=new_tag::$NEW_TAG"
 

@@ -38,6 +38,9 @@ jobs:
           fi
           echo "::set-output name=new_tag::$NEW_TAG"
 
+      - name: Debug NEW_TAG
+        run: echo "NEW_TAG: ${{ steps.version.outputs.new_tag }}"
+
       - name: Check if tag exists
         id: tag_check
         run: |
@@ -52,6 +55,9 @@ jobs:
         run: |
           git tag -a ${{ steps.version.outputs.new_tag }} -m "Release ${{ steps.version.outputs.new_tag }}"
           git push origin ${{ steps.version.outputs.new_tag }}
+
+      - name: Debug Branch Name
+        run: echo "Branch Name: release/${{ steps.version.outputs.new_tag }}"
 
       - name: Create release branch
         run: |

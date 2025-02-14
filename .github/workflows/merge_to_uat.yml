@@ -1,4 +1,4 @@
-name: Merge Main to UAT
+name: Merge Master to UAT
 
 on:
   push:

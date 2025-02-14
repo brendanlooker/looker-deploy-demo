@@ -27,3 +27,7 @@ jobs:
           git push origin uat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Ensure you have a GITHUB_TOKEN secret.
+      - name: Debug GITHUB_TOKEN
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission
+

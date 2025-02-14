@@ -38,7 +38,17 @@ jobs:
           fi
           echo "::set-output name=new_tag::$NEW_TAG"
 
-      - name: Create Tag
+      - name: Check if tag exists
+        id: tag_check
+        run: |
+          if git tag -l ${{ steps.version.outputs.new_tag }}; then
+            echo "::set-output name=tag_exists::true"
+          else
+            echo "::set-output name=tag_exists::false"
+          fi
+
+      - name: Create Tag (if it doesn't exist)
+        if: steps.tag_check.outputs.tag_exists == 'false'
         run: |
           git tag -a ${{ steps.version.outputs.new_tag }} -m "Release ${{ steps.version.outputs.new_tag }}"
           git push origin ${{ steps.version.outputs.new_tag }}

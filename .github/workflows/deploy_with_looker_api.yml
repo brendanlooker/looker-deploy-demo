@@ -34,7 +34,7 @@ jobs:
         run: |
           python <<EOF
           import looker_sdk
-          from looker_sdk import models
+          from looker_sdk import models40
           import os
 
           sdk = looker_sdk.init40(

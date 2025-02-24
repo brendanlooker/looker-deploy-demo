@@ -26,9 +26,9 @@ jobs:
 
       - name: Deploy to UAT Looker
         env:
-          UAT_LOOKER_BASE_URL: ${{ secrets.UAT_LOOKER_BASE_URL }}
-          UAT_LOOKER_CLIENT_ID: ${{ secrets.UAT_LOOKER_CLIENT_ID }}
-          UAT_LOOKER_CLIENT_SECRET: ${{ secrets.UAT_LOOKER_CLIENT_SECRET }}
+          LOOKERSDK_BASE_URL: ${{ secrets.UAT_LOOKER_BASE_URL }}
+          LOOKERSDK_CLIENT_ID: ${{ secrets.UAT_LOOKER_CLIENT_ID }}
+          LOOKERSDK_CLIENT_SECRET: ${{ secrets.UAT_LOOKER_CLIENT_SECRET }}
           UAT_LOOKER_PROJECT_ID: ${{ secrets.UAT_LOOKER_PROJECT_ID }}
           GIT_BRANCH: uat # or main, depending on your production branch
         run: |
@@ -36,12 +36,9 @@ jobs:
           import looker_sdk
           from looker_sdk import models40
           import os
+  
 
-          sdk = looker_sdk.init40(
-              client_id=os.environ["UAT_LOOKER_CLIENT_ID"],
-              client_secret=os.environ["UAT_LOOKER_CLIENT_SECRET"],
-              base_url=os.environ["UAT_LOOKER_BASE_URL"],
-          )
+          sdk = looker_sdk.init40()
 
           project_id = os.environ["UAT_LOOKER_PROJECT_ID"]
           git_branch = os.environ["GIT_BRANCH"]

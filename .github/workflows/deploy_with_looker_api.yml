@@ -1,9 +1,10 @@
 name: Deploy Looker Changes to UAT
 
 on:
-  push:
-    branches:
-      - uat
+  workflow_run:
+    workflows: ["Merge Master to UAT"]
+    types:
+      - completed
 
 jobs:
   deploy:

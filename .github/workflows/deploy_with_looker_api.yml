@@ -1,36 +1,55 @@
-# This is a basic workflow to help you get started with Actions
+name: Deploy Looker Changes to UAT
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches:
+      - uat
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install dependencies
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          python -m pip install --upgrade pip
+          pip install looker_sdk
+
+      - name: Deploy to UAT Looker
+        env:
+          UAT_LOOKER_BASE_URL: ${{ secrets.UAT_LOOKER_BASE_URL }}
+          UAT_LOOKER_CLIENT_ID: ${{ secrets.UAT_LOOKER_CLIENT_ID }}
+          UAT_LOOKER_CLIENT_SECRET: ${{ secrets.UAT_LOOKER_CLIENT_SECRET }}
+          UAT_LOOKER_PROJECT_ID: ${{ secrets.UAT_LOOKER_PROJECT_ID }}
+          GIT_BRANCH: uat # or main, depending on your production branch
+        run: |
+          python <<EOF
+          import looker_sdk
+          from looker_sdk import models
+          import os
+
+          sdk = looker_sdk.init40(
+              client_id=os.environ["UAT_LOOKER_CLIENT_ID"],
+              client_secret=os.environ["UAT_LOOKER_CLIENT_SECRET"],
+              base_url=os.environ["UAT_LOOKER_BASE_URL"],
+          )
+
+          project_id = os.environ["UAT_LOOKER_PROJECT_ID"]
+          git_branch = os.environ["GIT_BRANCH"]
+
+          try:
+              sdk.update_git_branch(project_id=project_id, name=git_branch, deploy_ref=True)
+              print(f"Successfully deployed branch '{git_branch}' to production in project: {project_id}")
+
+          except looker_sdk.error.SDKError as e:
+              print(f"Error deploying branch: {e}")
+              exit(1)
+          EOF

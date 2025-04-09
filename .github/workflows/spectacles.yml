@@ -11,7 +11,13 @@ on:
   #   branches: [ master ]
     
   # Allows you to run this workflow manually from the Actions tab
+  
   workflow_dispatch:
+    inputs:
+      message:
+        description: 'Branch'
+        required: true
+        default: 'master'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -36,5 +42,5 @@ jobs:
         run: pip install looker_sdk
 
       - name: Spectacles SQL Checks
-        run: spectacles sql --base-url https://0a008a8e-ad98-4f2e-95c4-99bcdc1ff974.looker.app --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --port 443 --project thelook --explores ecommerceSA/order_items_local
+        run: spectacles sql --base-url https://0a008a8e-ad98-4f2e-95c4-99bcdc1ff974.looker.app --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --port 443 --project thelook --explores ecommerceSA/order_items_local --branch ${{ github.event.inputs.message }}
 

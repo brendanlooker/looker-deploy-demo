@@ -42,15 +42,12 @@ jobs:
         run: |
           python <<EOF
           import looker_sdk
-          from looker_sdk import models40
+          from looker_sdk import models40 as mdls
   
-
           sdk = looker_sdk.init40()
 
           project_id = '${{ github.event.inputs.branch }}'
           folder_ids = ${{ github.event.inputs.folders }}
-
-          from looker_sdk import models as mdls
 
           try:
               sdk.content_validation(project_names=mdls.DelimSequence([{project_id}]), space_ids=mdls.DelimSequence([{folder_ids}]))

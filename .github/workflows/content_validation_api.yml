@@ -1,0 +1,62 @@
+name: Looker Content Validation via API
+
+on:
+  workflow_dispatch:
+    inputs:
+        branch:
+          description: 'Branch'
+          required: true
+          default: 'master'
+        folders:
+          description: 'Folders'
+          required: true
+          default: '1'
+  # workflow_run:
+  #   workflows: ["Merge Master to UAT"]
+  #   types:
+  #     - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+            python -m pip install --upgrade pip
+            pip install --upgrade looker_sdk
+
+      - name: Run Looker Content Validation
+        env:
+          LOOKERSDK_BASE_URL: ${{ secrets.UAT_LOOKER_BASE_URL }}
+          LOOKERSDK_CLIENT_ID: ${{ secrets.UAT_CLIENT_ID }}
+          LOOKERSDK_CLIENT_SECRET: ${{ secrets.UAT_CLIENT_SECRET }}
+        run: |
+          python <<EOF
+          import looker_sdk
+          from looker_sdk import models40
+  
+
+          sdk = looker_sdk.init40()
+
+          project_id = ${{ github.event.inputs.branch }}
+          folder_ids = ${{ github.event.inputs.folders }}
+
+          from looker_sdk import models as mdls
+
+          try:
+              sdk.content_validation(project_names=mdls.DelimSequence([{project_id}]), space_ids=mdls.DelimSequence([{folder_ids}]))
+              print(f"Looker Content Validated Successfully in project: {project_id}" and folders: {folder_ids})
+
+          except looker_sdk.error.SDKError as e:
+              print(f"Validation Errors detected: {e}")
+              exit(1)
+          EOF

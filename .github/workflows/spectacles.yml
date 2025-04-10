@@ -43,6 +43,11 @@ jobs:
 
       - name: Spectacles SQL Checks
         run: spectacles sql --base-url https://0a008a8e-ad98-4f2e-95c4-99bcdc1ff974.looker.app --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --port 443 --project thelook --explores ecommerceSA/order_items_local --branch ${{ github.event.inputs.message }}
-      - name: Spectacles Validation Checks
+      
+      - name: Spectacles Validation Checks - Dev instance
         run: spectacles content --base-url https://0a008a8e-ad98-4f2e-95c4-99bcdc1ff974.looker.app --client-id ${{ secrets.CLIENT_ID }} --client-secret ${{ secrets.CLIENT_SECRET }} --port 443 --project thelook --explores ecommerceSA/order_items_local --branch ${{ github.event.inputs.message }}
+      
+      - name: Spectacles Validation Checks - UAT instance
+        run: spectacles content --base-url https://083dec7c-443d-4142-9e40-940cc101631a.looker.app --client-id ${{ secrets.UAT_CLIENT_ID }} --client-secret ${{ secrets.UAT_CLIENT_SECRET }} --port 443 --project thelook --folder 5 --branch ${{ github.event.inputs.message }}
+
 

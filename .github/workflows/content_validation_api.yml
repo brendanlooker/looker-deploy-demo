@@ -47,7 +47,7 @@ jobs:
 
           sdk = looker_sdk.init40()
 
-          project_id = ${{ github.event.inputs.branch }}
+          project_id = '${{ github.event.inputs.branch }}'
           folder_ids = ${{ github.event.inputs.folders }}
 
           from looker_sdk import models as mdls

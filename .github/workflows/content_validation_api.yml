@@ -54,7 +54,7 @@ jobs:
 
           try:
               sdk.content_validation(project_names=mdls.DelimSequence([{project_id}]), space_ids=mdls.DelimSequence([{folder_ids}]))
-              print(f"Looker Content Validated Successfully in project: {project_id}" and folders: {folder_ids})
+              print(f"Looker Content Validated Successfully in project: {project_id} and folders: {folder_ids}")
 
           except looker_sdk.error.SDKError as e:
               print(f"Validation Errors detected: {e}")

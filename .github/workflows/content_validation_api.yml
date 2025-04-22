@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
         branch:
-          description: 'Branch'
+          description: 'Project'
           required: true
-          default: 'master'
+          default: 'sample_thelook_ecommerce'
         folders:
           description: 'Folders'
           required: true
@@ -46,7 +46,7 @@ jobs:
   
           sdk = looker_sdk.init40()
 
-          project_id = '${{ github.event.inputs.branch }}'
+          project_id = '${{ github.event.inputs.project_id }}'
           folder_ids = '${{ github.event.inputs.folders }}'
           
           try:

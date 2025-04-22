@@ -47,12 +47,28 @@ jobs:
           sdk = looker_sdk.init40()
 
           project_id = '${{ github.event.inputs.branch }}'
-          folder_ids = ${{ github.event.inputs.folders }}
-
+          folder_ids = '${{ github.event.inputs.folders }}'
+          
           try:
-              sdk.content_validation(project_names=mdls.DelimSequence([{project_id}]), space_ids=mdls.DelimSequence([{folder_ids}]))
+              results = sdk.content_validation(project_names=mdls.DelimSequence([project_id]), space_ids=mdls.DelimSequence([folder_ids]))
               print(f"Looker Content Validated Successfully in project: {project_id} and folders: {folder_ids}")
-
+              print("==== Looks Validated ====")
+              print(results.total_looks_validated)
+              print()
+          
+              print("==== Dashboard Tiles Validated ====")
+              print(results.total_dashboard_elements_validated)
+              print()
+          
+              print("==== Explores Validated ====")
+              print(results.total_explores_validated)
+              print()
+          
+              print("==== Number of Errors ====")
+              num_errors = len(results.content_with_errors)
+              print(num_errors)
+              print()
+          
           except looker_sdk.error.SDKError as e:
               print(f"Validation Errors detected: {e}")
               exit(1)

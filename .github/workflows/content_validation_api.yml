@@ -68,6 +68,9 @@ jobs:
               num_errors = len(results.content_with_errors)
               print(num_errors)
               print()
+              if num_errors > 0:
+                print(f"Validation Errors detected: {results.content_with_errors}")
+                exit(1)
           
           except looker_sdk.error.SDKError as e:
               print(f"Validation Errors detected: {e}")

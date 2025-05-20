@@ -1,0 +1,87 @@
+name: Spectacles Validation UAT
+
+on:
+  push:
+    branches: [UAT]
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: 'Looker Project ID'
+        required: true
+        type: string
+      message:
+        description: 'Git Branch Name'
+        required: true
+        type: string
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      LOOKERSDK_BASE_URL: ${{ secrets.UAT_LOOKER_BASE_URL }}
+      LOOKERSDK_CLIENT_ID: ${{ secrets.UAT_CLIENT_ID }}
+      LOOKERSDK_CLIENT_SECRET: ${{ secrets.UAT_CLIENT_SECRET }}
+      UAT_LOOKER_PROJECT_ID: ${{ secrets.UAT_LOOKER_PROJECT_ID }}
+      GIT_BRANCH: ${{ github.event.inputs.message }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python and install dependencies
+        uses: actions/setup-python@v3
+
+      - name: Install Spectacles and Looker SDK
+        run: pip install spectacles looker_sdk
+
+      - name: Enable Dev Mode & Reset Project to Remote
+        run: |
+          python - <<EOF
+          import looker_sdk
+          from looker_sdk import models40 as mdls
+
+          sdk = looker_sdk.init40()
+          project_id = "${{ github.event.inputs.project_id }}"
+
+          try:
+              sdk.update_session(body=mdls.WriteApiSession(workspace_id="dev"))
+              print("Development mode enabled.")
+          except looker_sdk.error.SDKError as e:
+              print("Error enabling dev mode:", e.message, e.errors)
+
+          try:
+              sdk.reset_project_to_remote(project_id=project_id)
+              print("Reset project to remote successful.")
+          except looker_sdk.error.SDKError as e:
+              print("Error resetting project:", e.message, e.errors)
+          EOF
+
+      - name: Run Spectacles SQL validation
+        run: |
+          spectacles sql \
+            --base-url $LOOKERSDK_BASE_URL \
+            --client-id $LOOKERSDK_CLIENT_ID \
+            --client-secret $LOOKERSDK_CLIENT_SECRET \
+            --port 443 \
+            --project $UAT_LOOKER_PROJECT_ID \
+            --explores ecommerceSA/order_items_local \
+            --branch $GIT_BRANCH
+
+      - name: Deploy to UAT
+        run: |
+          python - <<EOF
+          import looker_sdk
+          import os
+
+          sdk = looker_sdk.init40()
+          project_id = os.environ["UAT_LOOKER_PROJECT_ID"]
+          branch = os.environ["GIT_BRANCH"]
+
+          try:
+              sdk.deploy_ref_to_production(project_id=project_id, branch=branch)
+              print(f"Successfully deployed branch '{branch}' to UAT.")
+          except looker_sdk.error.SDKError as e:
+              print("Deployment failed:", e)
+              exit(1)
+          EOF
